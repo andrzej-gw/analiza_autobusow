@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: analizaautobusow-pkg-ANDRZEJ-GWIAZDA
+Version: 0.0.1
+Summary: Pakiet do analizy autobusow.
+Home-page: https://gitlab.mimuw.edu.pl/ag448511/projekt_python.git
+Author: Andrzej Gwiazda
+Author-email: jedrekgwiazda@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENCE
+
+Biblioteka do analizowania Warszawskich autobusów, a dokładnie ich prędkości i opóźnień.
