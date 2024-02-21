@@ -25,9 +25,17 @@ def analizuj(nazwa_pliku):
         plik.readline()
         wszystkie = int(plik.readline())
         
-        print("Autobusów, które przekroczyły prędkość było:", przekraczające, "na", wszystkie, "autobusów, czyli", str(int(przekraczające/wszystkie*100))+"%.")
+        print("Autobusów, które przekroczyły prędkość było:", przekraczające, "na", wszystkie, "autobusów, czyli ", end="")
+        if wszystkie:
+            print(str(int(przekraczające/wszystkie*100))+"%.")
+        else:
+            print("-%.")
         print("Odrzucano autobusy z prędkościami powyżej 90 km/h oraz te, których lokalizację, były daleko od Warszawy.")
-        print("Odrzucono", odrzucone_odczyty,"na",liczba_odczytów, "odczytów, czyli", str(round(odrzucone_odczyty/liczba_odczytów*100, 3))+"%.")
+        print("Odrzucono", odrzucone_odczyty,"na",liczba_odczytów, "odczytów, czyli ", end="")
+        if liczba_odczytów:
+            print(str(round(odrzucone_odczyty/liczba_odczytów*100, 3))+"%.")
+        else:
+            print("-%.")
         print()
 
         plik.readline()
@@ -98,7 +106,11 @@ def analizuj(nazwa_pliku):
 
         print("Dalej statystyki są prowadzone dla przyjazdów, a nie autobusów, czyli jeden autobus może spóźnić się wiele razy.")
         print("Spóźnienie było liczone powyżej 5 minut.")
-        print("Na", spóźnione_przyjazdy+niespóźnione_przyjazdy, "spóźnione były", str(spóźnione_przyjazdy)+".")
+        print("Na", spóźnione_przyjazdy+niespóźnione_przyjazdy, "spóźnione były", str(spóźnione_przyjazdy)+", czyli ", end="")
+        if spóźnione_przyjazdy+niespóźnione_przyjazdy:
+            print(str(round(spóźnione_przyjazdy/(spóźnione_przyjazdy+niespóźnione_przyjazdy)*100, 3))+"%.")
+        else:
+            print("-%.")
 
         if spóźnione_przyjazdy:
             plik.readline()
@@ -110,4 +122,3 @@ def analizuj(nazwa_pliku):
         
         plt.show()
         
-analizuj("dane_21_02_1200.txt")

@@ -58,25 +58,16 @@ def lat_lon_na_numer_lokalizacji(lat, lon):
 
 def pobierz_rozkład_jazdy(nazwa_pliku):
     with open(nazwa_pliku, "w") as plik:
-        #  while True:
         odpowiedź = requests.get("https://api.um.warszawa.pl/api/action/dbstore_get/?id=1c08a38c-ae09-46d2-8926-4f9d25cb0630&apikey="+config.apiKey)
 
         przystanki=odpowiedź.json()['result']
             
-            #  if len(odpowiedź.text)>100: # wykrywanie błędów podczas pobierania danych
-                #  break
         for p in przystanki:
             print("pobieram:", p['values'][0]['value'], file=sys.stderr)
-            #  print()
-            #  while True:
             odpowiedź = requests.get("https://api.um.warszawa.pl/api/action/dbtimetable_get/?id=88cd555f-6f31-43ca-9de4-66c479ad5942&busstopId="+p['values'][0]['value']+"&busstopNr="+p['values'][1]['value']+"&apikey="+config.apiKey)
 
             linie=odpowiedź.json()['result']
-                
-            #  print("https://api.um.warszawa.pl/api/action/dbtimetable_get/?id=88cd555f-6f31-43ca-9de4-66c479ad5942&busstopId="+p['values'][0]['value']+"&busstopNr="+p['values'][1]['value']+"&apikey="+config.apiKey)
-            #  print(odpowiedź.ok)
-            #  print(linie)
-            
+                            
             p['linie']=[]
             for l in linie:
                 p['linie'].append((l['values'][0]['value'], []))
@@ -84,13 +75,7 @@ def pobierz_rozkład_jazdy(nazwa_pliku):
                 przyjazdy = odpowiedź.json()['result']
                 for przyjazd in przyjazdy:
                     p['linie'][-1][1].append((przyjazd['values'][2]['value'],przyjazd['values'][5]['value']))
-                
-                
-                #  if len(odpowiedź.text)>20: # wykrywanie błędów podczas pobierania danych
-                    #  break
-            #  print(p)
-            #  print()
-            #  print()
+                                
             plik.write(json.dumps(p)+"\n")
         
 def wczytaj_rozkład_jazdy(nazwa_pliku):
@@ -98,22 +83,17 @@ def wczytaj_rozkład_jazdy(nazwa_pliku):
         przystanki=[]
         for linia in plik:
             przystanki.append(json.loads(linia))
-    #  print(przystanki)
     rozkład = {}
     for p in przystanki:
         for linia in p['linie']:
-            #  print(linia, "\n")
             if not linia[0] in rozkład:
                 rozkład[linia[0]]=Linia(linia[0], [])
             rozkład[linia[0]].przystanki.append(Przystanek_na_linii([], latlon.LatLon(p['values'][4]['value'], p['values'][5]['value']),p['values'][0]['value'], p['values'][2]['value'], p['values'][1]['value']))
             for godz in linia[1]:
                 rozkład[linia[0]].przystanki[-1].godziny_przyjazdu.append(Godzina_przyjazdu(godz[1], godz[0]))
-    #  print(rozkład['102'])
     return rozkład
         
 def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sekundach
-    #  print("wtf")
-    
     with open(nazwa_pliku, "w") as plik:
         autobusy = {}
 
@@ -139,28 +119,17 @@ def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sek
 
         czas_rozpoczecia = time.time()
 
-        #  min_Lat=max_Lat=52.233296
-        #  min_Lon=max_Lon=21.045162
-
         while time.time()-czas_rozpoczecia < planowany_czas_działania:
             
             odpowiedz = requests.get("https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id=%20f2e5503e-927d-4ad3-9500-4ab9e55deb59&apikey="+config.apiKey+"&type=1")
-            
-            #  print(odpowiedz.text)
-            
+                        
             if len(odpowiedz.text) < 100: # wykrywanie błędów pobierania danych
                 continue
 
             dane=odpowiedz.json()
-            
-            #  print(dane)
-            
+                        
 
             for autobus in dane['result']:
-                #  min_Lat=min(min_Lat, autobus['Lat'])
-                #  max_Lat=max(max_Lat, autobus['Lat'])
-                #  min_Lon=min(min_Lon, autobus['Lon'])
-                #  max_Lon=max(max_Lon, autobus['Lon'])
                 if autobus['VehicleNumber'] in autobusy.keys():
                     poprzednia_pozycja=latlon.LatLon(autobusy[autobus['VehicleNumber']]['Lat'], autobusy[autobus['VehicleNumber']]['Lon'])
                     aktualna_pozycja=latlon.LatLon(autobus['Lat'], autobus['Lon'])
@@ -183,20 +152,14 @@ def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sek
                                 if not autobus['VehicleNumber'] in autobusy_przekraczające_prędkość_w_danej_lokalizacji[numer_lokalizacji]:
                                     autobusy_przekraczające_prędkość_w_danej_lokalizacji[numer_lokalizacji].add(autobus['VehicleNumber'])
                             if rozkład!=None and autobus['Lines'] in rozkład: # sprawdzam punktualność
-                                #  print(autobus)
-                                #  print(autobus)
                                 for przystanek in rozkład[autobus['Lines']].przystanki:
                                     if aktualna_pozycja.distance(przystanek.pozycja)<=0.05: # jeśli bliżej niż 50m od przystanku, to dojechał
-                                        #  print(autobus['Brigade'], autobus['Time'], przystanek)
                                         najmniejsza_różnica = 100000
                                         for godz in przystanek.godziny_przyjazdu:
                                             if godz.nr_brygady==autobus['Brigade']:
-                                                #  print("    ", autobus['Time'][-8:], "-", godz.godzina)
                                                 opóźnienie=różnica_czasu(autobus['Time'][-8:], godz.godzina)//60
-                                                #  print("    opóźnienie: ", opóźnienie)
                                                 if abs(najmniejsza_różnica)>abs(opóźnienie):
                                                     najmniejsza_różnica = opóźnienie
-                                        #  print("najmniejsza_różnica", najmniejsza_różnica)
                                         if najmniejsza_różnica<60: # odrzucam pozostałe, bo stanie na pętli itp.
                                             if najmniejsza_różnica>5:
                                                 spóźnione_przyjazdy+=1
@@ -206,10 +169,7 @@ def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sek
                 autobusy[autobus['VehicleNumber']]=autobus
               
             time.sleep(10)
-            
-        #  print(min_Lat, max_Lat)
-        #  print(min_Lon, max_Lon)
-            
+                        
         plik.write("liczba_odczytów:"+"\n")
         plik.write(str(liczba_odczytów)+"\n")
 
@@ -249,6 +209,3 @@ def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sek
             plik.write("średnie_opóźnienia:"+"\n")
             plik.write(str(suma_opóźnień/spóźnione_przyjazdy)+"\n")
             plik.write(str(suma_opóźnień/(spóźnione_przyjazdy+niespóźnione_przyjazdy))+"\n")
-
-#  pobierz_rozkład_jazdy("aa.txt")
-pobierz_dane(60*60, "dane_21_02_1300.txt", wczytaj_rozkład_jazdy("rozklad_21_02.txt"))
