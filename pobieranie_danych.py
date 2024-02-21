@@ -251,4 +251,4 @@ def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sek
             plik.write(str(suma_opóźnień/(spóźnione_przyjazdy+niespóźnione_przyjazdy))+"\n")
 
 #  pobierz_rozkład_jazdy("aa.txt")
-pobierz_dane(60*60, "dane_21_02_1200.txt", wczytaj_rozkład_jazdy("rozklad_20_02.txt"))
+pobierz_dane(60*60, "dane_21_02_1300.txt", wczytaj_rozkład_jazdy("rozklad_21_02.txt"))

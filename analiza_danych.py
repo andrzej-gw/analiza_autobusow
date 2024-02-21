@@ -8,45 +8,43 @@ def numer_lokalizacji_na_lat_lon(nr):
     return (52+(nr%50+0.5)/100, 20.5+(nr//50+0.5)/100)
 
 def analizuj(nazwa_pliku):
+    fig, axs = plt.subplots(2, 1, constrained_layout=True)
+
+    fig.suptitle('Dane', fontsize=16)
+
     with open(nazwa_pliku, "r") as plik:
         plik.readline()
         liczba_odczytów=int(plik.readline())
-        print("liczba_odczytów:")
-        print(liczba_odczytów)
 
         plik.readline()
         odrzucone_odczyty=int(plik.readline())
-        print("odrzucone_odczyty:")
-        print(odrzucone_odczyty)
 
         plik.readline()
         przekraczające = int(plik.readline())
-        print("przekraczające:")
-        print(przekraczające)
-
+        
         plik.readline()
         wszystkie = int(plik.readline())
-        print("wszystkie:")
-        print(wszystkie)
+        
+        print("Autobusów, które przekroczyły prędkość było:", przekraczające, "na", wszystkie, "autobusów, czyli", str(int(przekraczające/wszystkie*100))+"%.")
+        print("Odrzucano autobusy z prędkościami powyżej 90 km/h oraz te, których lokalizację, były daleko od Warszawy.")
+        print("Odrzucono", odrzucone_odczyty,"na",liczba_odczytów, "odczytów, czyli", str(round(odrzucone_odczyty/liczba_odczytów*100, 3))+"%.")
+        print()
 
         plik.readline()
         prędkości = int(plik.readline())
-        print("prędkości:")
-        print(prędkości)
 
         L=[]
         for i in range(prędkości):
             L.append(float(plik.readline()))
         L.sort()
-        print(L)
 
-        plt.plot(L)
-        plt.show()
+        axs[0].plot(L)
+        axs[0].set_title("Prędkości autobusów")
 
         plik.readline()
         lokalizacje = int(plik.readline())
-        print("lokalizacje:")
-        print(lokalizacje)
+        print("Podzielono Warszawę i okolicę na 5000 obszarów, o powierzchni ~ 1km^2.")
+        print("Z tych lokalizacji", lokalizacje, "zarejestrowało obecność przynajmniej jednego autobusu.")
 
         L=[]
         for i in range(lokalizacje):
@@ -57,14 +55,17 @@ def analizuj(nazwa_pliku):
             d = int(d)
             L.append((a, b, c, d))
         L.sort()
-        print(L)
         W=[]
+        L1=[]
         for i in L:
-            W.append(i[0])
+            if i[3]>=10: # odrzucam lokalizację z mniej niż 10 autobusami
+                W.append(i[0])
+                L1.append(i)
 
-        plt.plot(W)
-        plt.show()
+        axs[1].plot(W)
+        axs[1].set_title("Ile średnio autobusów przekracza prędkość, w różnych lokalizacjach")
 
+        # pobieram dane o przystankach, żeby uzyskać punkt odniesienia do współrzędnych lokalizacji
         while True:
             odpowiedź = requests.get("https://api.um.warszawa.pl/api/action/dbstore_get/?id=1c08a38c-ae09-46d2-8926-4f9d25cb0630&apikey="+config.apiKey)
 
@@ -73,41 +74,40 @@ def analizuj(nazwa_pliku):
             if len(odpowiedź.text)>100: # wykrywanie błędów podczas pobierania danych
                 break
 
-        for line in przystanki:
-            print(line)
-
-        for a, b, c, d in L[-5:]:
+        print()
+        print("Lokalizacje, w których prędkość była najbardziej łamana:")
+        for a, b, c, d in reversed(L1[-10:]):
             lat, lon = numer_lokalizacji_na_lat_lon(b)
-            print(a, b, c, d, lat, lon, end=" ")
+            print(str(lat)+",", lon, ": prędkość złamało", str(int(a*100))+"% autobusów, najbliższy przystanek od tej lokalizacji to ", end="")
             najbliższy_przystanek=(1000, przystanki[0])
             A=latlon.LatLon(lat, lon)
             for p in przystanki:
-                #  print(p, p['values'][4]['value'])
                 B=latlon.LatLon(p['values'][4]['value'], p['values'][5]['value'])
                 najbliższy_przystanek=min(najbliższy_przystanek, (A.distance(B), p))
-            print(najbliższy_przystanek[1]['values'][2]['value'], "w odległości", najbliższy_przystanek[0], "km")
-            
-            
+            print(najbliższy_przystanek[1]['values'][2]['value'], "w odległości", int(najbliższy_przystanek[0]*1000), "m.")
+        print()    
+        
         plik.readline()
         spóźnione_przyjazdy = int(plik.readline())
-        print("spóźnione_przyjazdy:")
-        print(spóźnione_przyjazdy)
 
         plik.readline()
         niespóźnione_przyjazdy = int(plik.readline())
-        print("niespóźnione_przyjazdy:")
-        print(niespóźnione_przyjazdy)
 
         plik.readline()
         suma_opóźnień = int(plik.readline())
-        print("suma_opóźnień:")
-        print(suma_opóźnień)
+
+        print("Dalej statystyki są prowadzone dla przyjazdów, a nie autobusów, czyli jeden autobus może spóźnić się wiele razy.")
+        print("Spóźnienie było liczone powyżej 5 minut.")
+        print("Na", spóźnione_przyjazdy+niespóźnione_przyjazdy, "spóźnione były", str(spóźnione_przyjazdy)+".")
 
         if spóźnione_przyjazdy:
             plik.readline()
-            print("średnie_opóźnienia:")
             średnie_opóźnienie = float(plik.readline())
-            print(średnie_opóźnienie)
             średni_czas_dojazdu = float(plik.readline())
-            print(średni_czas_dojazdu)
-analizuj("aaa.txt")
+
+            print("Średnie opóźnienie (licząc tylko spóźnione przyjazdy) wyniosło", int(średnie_opóźnienie), "minut.")
+            print("Średni czas dojazdu (licząc wszystkie przyjazdy) wyniósł", int(średni_czas_dojazdu), "minut.")
+        
+        plt.show()
+        
+analizuj("dane_21_02_1200.txt")
