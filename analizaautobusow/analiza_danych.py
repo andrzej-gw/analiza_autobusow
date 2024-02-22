@@ -91,7 +91,8 @@ def analizuj(nazwa_pliku):
             A=latlon.LatLon(lat, lon)
             for p in przystanki:
                 B=latlon.LatLon(p['values'][4]['value'], p['values'][5]['value'])
-                najbliższy_przystanek=min(najbliższy_przystanek, (A.distance(B), p))
+                if najbliższy_przystanek[0]>=A.distance(B):
+                    najbliższy_przystanek=(A.distance(B), p)
             print(najbliższy_przystanek[1]['values'][2]['value'], "w odległości", int(najbliższy_przystanek[0]*1000), "m.")
         print()    
         

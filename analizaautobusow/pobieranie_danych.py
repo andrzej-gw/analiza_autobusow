@@ -139,7 +139,7 @@ def pobierz_dane(planowany_czas_działania, nazwa_pliku, rozkład=None): # w sek
                         liczba_odczytów +=1
                         prędkość=dystans/zmiana_czasu*60*60
                         numer_lokalizacji = lat_lon_na_numer_lokalizacji(autobus['Lat'], autobus['Lon'])
-                        if prędkość>90 or numer_lokalizacji==-1: # odrzucam pozostałe odczyty
+                        if prędkość>90 or numer_lokalizacji==-1 or prędkość<0: # odrzucam pozostałe odczyty
                             odrzucone_odczyty+=1
                         else:
                             autobus["prędkość"]=prędkość
